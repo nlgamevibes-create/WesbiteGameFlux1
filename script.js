@@ -48,13 +48,13 @@ document.querySelectorAll('.pricing-card').forEach(card => {
     });
 });
 
-// --- Stripe Payment Links (vervang deze met jouw eigen links) ---
+// --- Stripe Payment Links (van laag naar hoog) ---
 const paymentLinks = {
-    "FXServer I": "https://buy.stripe.com/8x23cw3pN3aG9PP6eZ53O00",
-    "FXServer II": "https://buy.stripe.com/testlink_II",
-    "FXServer III": "https://buy.stripe.com/testlink_III",
-    "FXServer IV": "https://buy.stripe.com/testlink_IV",
-    "FXServer V": "https://buy.stripe.com/testlink_V"
+    "FXServer I": "https://buy.stripe.com/7sYaEY9ObaD8bXX6eZ53O02",
+    "FXServer II": "https://buy.stripe.com/28EaEYgcz7qW2nn7j353O03",
+    "FXServer III": "https://buy.stripe.com/cNifZi9ObeTo3rrdHr53O04",
+    "FXServer IV": "https://buy.stripe.com/9B6aEYf8v12y7HH1YJ53O05",
+    "FXServer V": "https://buy.stripe.com/eVqcN6bWjfXs6DD0UF53O06"
 };
 
 // --- Dynamische Stripe link handler ---
