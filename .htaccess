@@ -1,0 +1,63 @@
+# GameFlux Website - Apache Configuration
+
+# Enable CORS for payment-proxy.php
+<IfModule mod_headers.c>
+    # Allow from all origins (adjust voor productie)
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "POST, OPTIONS, GET"
+    Header always set Access-Control-Allow-Headers "Content-Type, Accept, Authorization, X-Requested-With"
+    Header always set Access-Control-Allow-Credentials "true"
+    
+    # Handle preflight requests
+    Header always set Access-Control-Max-Age "3600"
+</IfModule>
+
+# Enable PHP - probeer verschillende PHP modules
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+
+# Zorg dat PHP bestanden worden uitgevoerd
+AddType application/x-httpd-php .php
+AddHandler application/x-httpd-php .php
+
+# Redirect to index.html for root
+DirectoryIndex index.html
+
+# Enable error pages - alleen voor root, niet voor PHP bestanden
+# ErrorDocument 404 /index.html  # UITGEZET - blokkeert PHP bestanden!
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Enable compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache static files
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
