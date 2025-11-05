@@ -1,0 +1,4 @@
+# Netlify redirects file
+# Note: For a static HTML site, we don't need catch-all redirects
+# This file is kept for potential future SPA routing needs
+
