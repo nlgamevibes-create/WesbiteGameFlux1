@@ -1,7 +1,7 @@
 <?php
 /**
  * Stripe Checkout Session Creator
- * Veilig, compatibel met PHP 7.4 – 8.3
+ * Compatibel met PHP 7.4 – 8.3
  */
 
 ob_start();
@@ -10,7 +10,6 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php-error.log');
 
-// -------------------- Helper --------------------
 function sendJsonError($message, $code = 500)
 {
     if (ob_get_level() > 0) ob_end_clean();
@@ -32,14 +31,13 @@ register_shutdown_function(function () {
     }
 });
 
-// -------------------- Headers --------------------
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS, GET');
 header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization');
 header('Access-Control-Max-Age: 3600');
 
-// OPTIONS (CORS preflight)
+// CORS preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
@@ -51,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // -------------------- Input --------------------
+    // Inkomende JSON
     $input = file_get_contents('php://input');
     if (empty($input)) sendJsonError('No data received', 400);
 
@@ -59,31 +57,25 @@ try {
     if (json_last_error() !== JSON_ERROR_NONE) sendJsonError('Invalid JSON: ' . json_last_error_msg(), 400);
 
     $package = $data['package'] ?? '';
-    $amount = floatval($data['amount'] ?? 0);
+    $amount  = floatval($data['amount'] ?? 0);
     $currency = $data['currency'] ?? 'EUR';
     $discordUsername = $data['discord_username'] ?? '';
     $price = $data['price'] ?? '';
 
-    if (empty($package) || $amount <= 0) sendJsonError('Package and amount required.', 400);
+    if (empty($package) || $amount <= 0)
+        sendJsonError('Package and amount required.', 400);
 
-    // -------------------- Stripe Key ophalen --------------------
+    // Stripe key ophalen
     $stripeSecretKey = getenv('STRIPE_SECRET_KEY');
-
     if (empty($stripeSecretKey) && file_exists(__DIR__ . '/config.php')) {
         require_once __DIR__ . '/config.php';
         if (defined('STRIPE_SECRET_KEY')) $stripeSecretKey = STRIPE_SECRET_KEY;
     }
 
-    // Vervang onderstaande sleutel tijdelijk door je eigen key als test
-    if (empty($stripeSecretKey)) {
-        $stripeSecretKey = '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'; // <-- hier invullen
-    }
-
-    if (empty($stripeSecretKey) || strpos($stripeSecretKey, 'sk_') !== 0) {
+    if (empty($stripeSecretKey) || strpos($stripeSecretKey, 'sk_') !== 0)
         sendJsonError('Stripe secret key not configured or invalid', 500);
-    }
 
-    // -------------------- URLS --------------------
+    // URL's
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     $path = dirname($_SERVER['REQUEST_URI']);
@@ -92,7 +84,6 @@ try {
     $successUrl = $baseUrl . '/payment-success.html?session_id={CHECKOUT_SESSION_ID}';
     $cancelUrl  = $baseUrl . '/index.html?package=' . urlencode($package) . '&price=' . urlencode($price);
 
-    // -------------------- Stripe API-aanroep --------------------
     if (!function_exists('curl_init')) sendJsonError('cURL not enabled on this server', 500);
 
     $amountInCents = intval($amount * 100);
