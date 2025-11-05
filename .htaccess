@@ -1,3 +1,4 @@
+# Zorg dat PHP-bestanden POST en OPTIONS toelaten
 <Files "payment-proxy.php">
   <IfModule mod_authz_core.c>
     Require all granted
@@ -8,8 +9,13 @@
   </IfModule>
 </Files>
 
+# Sta POST, GET en OPTIONS toe
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteCond %{REQUEST_METHOD} ^(GET|POST|OPTIONS)$
   RewriteRule ^ - [L]
 </IfModule>
+
+# Standaardinstellingen (optioneel)
+Options -Indexes
+DirectoryIndex index.html
