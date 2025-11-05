@@ -43,18 +43,29 @@ function sendJsonError($message, $code = 500) {
 register_shutdown_function(function() {
     $error = error_get_last();
     if ($error !== NULL && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        sendJsonError('PHP Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ' on line ' . $error['line'], 500);
+        // Make sure sendJsonError function exists before calling it
+        if (function_exists('sendJsonError')) {
+            sendJsonError('PHP Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ' on line ' . $error['line'], 500);
+        } else {
+            // Fallback if sendJsonError doesn't exist yet
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            if (!headers_sent()) {
+                http_response_code(500);
+                header('Content-Type: application/json');
+                header('Access-Control-Allow-Origin: *');
+            }
+            echo json_encode([
+                'success' => false,
+                'error' => 'PHP Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ' on line ' . $error['line']
+            ]);
+        }
     }
 });
 
-// Set error handler for other errors
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    // Only handle fatal errors, let others pass through
-    if (in_array($errno, [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-        sendJsonError('PHP Error: ' . $errstr . ' in ' . $errfile . ' on line ' . $errline, 500);
-    }
-    return false; // Let PHP handle other errors normally
-});
+// Note: Fatal errors (E_ERROR, E_PARSE, etc.) can only be caught by register_shutdown_function
+// set_error_handler only catches non-fatal errors
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
