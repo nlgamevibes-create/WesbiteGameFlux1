@@ -74,3 +74,4 @@ Stripe stuurt standaard receipt emails voor alle betalingen. Deze kun je aanpass
 - **Stripe Dashboard** > **Settings** > **Emails**
 - Hier kun je de receipt email templates aanpassen
 
+

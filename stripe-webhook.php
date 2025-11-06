@@ -153,6 +153,83 @@ function sendAdminNotification($customerEmail, $package, $amount, $orderId) {
     mail(ADMIN_EMAIL, $subject, $message, $headers);
 }
 
+function sendDiscordWebhook($customerEmail, $package, $amount, $orderId) {
+    if (empty(DISCORD_WEBHOOK_URL)) {
+        logMessage("Discord webhook URL not configured, skipping Discord notification");
+        return false;
+    }
+    
+    $embed = [
+        'title' => '💳 Nieuwe Betaling Ontvangen',
+        'description' => 'Er is een nieuwe betaling succesvol verwerkt!',
+        'color' => 0x4CAF50, // Green color
+        'fields' => [
+            [
+                'name' => '📦 Pakket',
+                'value' => $package,
+                'inline' => true
+            ],
+            [
+                'name' => '💰 Bedrag',
+                'value' => '€' . number_format($amount, 2, ',', '.'),
+                'inline' => true
+            ],
+            [
+                'name' => '📧 Klant Email',
+                'value' => $customerEmail,
+                'inline' => false
+            ],
+            [
+                'name' => '🆔 Bestelnummer',
+                'value' => '`' . $orderId . '`',
+                'inline' => false
+            ],
+            [
+                'name' => '🕐 Tijdstip',
+                'value' => date('d-m-Y H:i:s'),
+                'inline' => false
+            ]
+        ],
+        'footer' => [
+            'text' => 'GameFlux Payment System'
+        ],
+        'timestamp' => date('c')
+    ];
+    
+    $payload = [
+        'embeds' => [$embed]
+    ];
+    
+    $ch = curl_init(DISCORD_WEBHOOK_URL);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json'
+        ],
+        CURLOPT_TIMEOUT => 10
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($error) {
+        logMessage("Discord webhook cURL error: " . $error);
+        return false;
+    }
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        logMessage("Discord webhook sent successfully for order {$orderId}");
+        return true;
+    } else {
+        logMessage("Discord webhook failed with HTTP code {$httpCode}: " . $response);
+        return false;
+    }
+}
+
 // Get raw POST body
 $payload = @file_get_contents('php://input');
 $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
@@ -222,6 +299,7 @@ switch ($eventType) {
         if ($customerEmail) {
             sendConfirmationEmail($customerEmail, $package, $amount, $orderId, $sessionId);
             sendAdminNotification($customerEmail, $package, $amount, $orderId);
+            sendDiscordWebhook($customerEmail, $package, $amount, $orderId);
             logMessage("Processed checkout.session.completed", [
                 'email' => $customerEmail,
                 'package' => $package,
@@ -240,6 +318,7 @@ switch ($eventType) {
             $package = $paymentIntent['metadata']['package'] ?? 'Onbekend pakket';
             sendConfirmationEmail($customerEmail, $package, $amount, $sessionId, $sessionId);
             sendAdminNotification($customerEmail, $package, $amount, $sessionId);
+            sendDiscordWebhook($customerEmail, $package, $amount, $sessionId);
             logMessage("Processed payment_intent.succeeded", [
                 'email' => $customerEmail,
                 'package' => $package,

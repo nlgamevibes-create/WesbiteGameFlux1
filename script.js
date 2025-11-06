@@ -54,7 +54,8 @@ const paymentLinks = {
     "FXServer II": "https://buy.stripe.com/28EaEYgcz7qW2nn7j353O03",
     "FXServer III": "https://buy.stripe.com/cNifZi9ObeTo3rrdHr53O04",
     "FXServer IV": "https://buy.stripe.com/9B6aEYf8v12y7HH1YJ53O05",
-    "FXServer V": "https://buy.stripe.com/eVqcN6bWjfXs6DD0UF53O06"
+    "FXServer V": "https://buy.stripe.com/eVqcN6bWjfXs6DD0UF53O06",
+    "EUP Key": "https://buy.stripe.com/9B628s4tR9z40ffcDn53O07"
 };
 
 // --- Dynamische Stripe link handler ---
